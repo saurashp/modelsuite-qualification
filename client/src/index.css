@@ -488,6 +488,29 @@ input, select, textarea {
   pointer-events: none;
 }
 
+/* Rich Text Editor Render Styles */
+.rich-text-editor-content ul {
+  list-style-type: disc !important;
+  padding-left: 1.5rem !important;
+  margin-top: 0.5rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.rich-text-editor-content ol {
+  list-style-type: decimal !important;
+  padding-left: 1.5rem !important;
+  margin-top: 0.5rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.rich-text-editor-content blockquote {
+  border-left: 4px solid rgba(255, 255, 255, 0.2) !important;
+  padding-left: 1rem !important;
+  margin: 0.5rem 0 !important;
+  color: #9CA3AF !important;
+  font-style: italic !important;
+}
+
 @keyframes slideInRight {
   from {
     opacity: 0;

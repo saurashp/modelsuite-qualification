@@ -89,7 +89,7 @@ const RichTextEditor = ({ value, onChange, placeholder }) => {
       <div className="flex flex-wrap gap-1 p-2 border-b border-border bg-bg-surface/50">
         <button
           type="button"
-          onClick={() => execCmd('bold')}
+          onMouseDown={(e) => { e.preventDefault(); execCmd('bold'); }}
           className="p-1.5 rounded hover:bg-bg-hover text-text-primary hover:text-primary transition-colors cursor-pointer"
           title="Bold"
         >
@@ -97,7 +97,7 @@ const RichTextEditor = ({ value, onChange, placeholder }) => {
         </button>
         <button
           type="button"
-          onClick={() => execCmd('italic')}
+          onMouseDown={(e) => { e.preventDefault(); execCmd('italic'); }}
           className="p-1.5 rounded hover:bg-bg-hover text-text-primary hover:text-primary transition-colors cursor-pointer"
           title="Italic"
         >
@@ -105,7 +105,7 @@ const RichTextEditor = ({ value, onChange, placeholder }) => {
         </button>
         <button
           type="button"
-          onClick={() => execCmd('underline')}
+          onMouseDown={(e) => { e.preventDefault(); execCmd('underline'); }}
           className="p-1.5 rounded hover:bg-bg-hover text-text-primary hover:text-primary transition-colors cursor-pointer"
           title="Underline"
         >
@@ -113,7 +113,7 @@ const RichTextEditor = ({ value, onChange, placeholder }) => {
         </button>
         <button
           type="button"
-          onClick={() => execCmd('strikeThrough')}
+          onMouseDown={(e) => { e.preventDefault(); execCmd('strikeThrough'); }}
           className="p-1.5 rounded hover:bg-bg-hover text-text-primary hover:text-primary transition-colors cursor-pointer"
           title="Strikethrough"
         >
@@ -122,7 +122,7 @@ const RichTextEditor = ({ value, onChange, placeholder }) => {
         <span className="w-[1px] bg-border my-1.5 mx-1" />
         <button
           type="button"
-          onClick={() => execCmd('insertUnorderedList')}
+          onMouseDown={(e) => { e.preventDefault(); execCmd('insertUnorderedList'); }}
           className="p-1.5 rounded hover:bg-bg-hover text-text-primary hover:text-primary transition-colors cursor-pointer"
           title="Bullet List"
         >
@@ -130,7 +130,7 @@ const RichTextEditor = ({ value, onChange, placeholder }) => {
         </button>
         <button
           type="button"
-          onClick={() => execCmd('insertOrderedList')}
+          onMouseDown={(e) => { e.preventDefault(); execCmd('insertOrderedList'); }}
           className="p-1.5 rounded hover:bg-bg-hover text-text-primary hover:text-primary transition-colors cursor-pointer"
           title="Numbered List"
         >
@@ -138,7 +138,7 @@ const RichTextEditor = ({ value, onChange, placeholder }) => {
         </button>
         <button
           type="button"
-          onClick={() => execCmd('formatBlock', 'blockquote')}
+          onMouseDown={(e) => { e.preventDefault(); execCmd('formatBlock', 'blockquote'); }}
           className="p-1.5 rounded hover:bg-bg-hover text-text-primary hover:text-primary transition-colors cursor-pointer"
           title="Quote"
         >
@@ -146,14 +146,14 @@ const RichTextEditor = ({ value, onChange, placeholder }) => {
         </button>
         <button
           type="button"
-          onClick={() => execCmd('removeFormat')}
+          onMouseDown={(e) => { e.preventDefault(); execCmd('removeFormat'); }}
           className="p-1.5 rounded hover:bg-bg-hover text-text-muted hover:text-text-primary transition-colors cursor-pointer"
           title="Clear Formatting"
         >
           {iconClear}
         </button>
       </div>
-
+ 
       {/* Editable Area */}
       <div
         ref={editorRef}
@@ -162,7 +162,7 @@ const RichTextEditor = ({ value, onChange, placeholder }) => {
         onInput={handleInput}
         onBlur={handleInput}
         placeholder={placeholder}
-        className="min-h-[140px] p-3.5 text-[13.5px] text-text-primary outline-none focus:outline-none overflow-y-auto font-sans content-editable-placeholder leading-relaxed"
+        className="min-h-[140px] p-3.5 text-[13.5px] text-text-primary outline-none focus:outline-none overflow-y-auto font-sans content-editable-placeholder leading-relaxed rich-text-editor-content"
       />
     </div>
   );
