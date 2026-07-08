@@ -5,7 +5,7 @@ const Task = require('../models/Task');
 // @access Talent
 const getAvailableTasks = async (req, res) => {
   try {
-    const tasks = await Task.find({ status: 'Open' })
+    const tasks = await Task.find({ status: 'Open', $or: [{ assignedTo: null }, { assignedTo: { $exists: false } }] })
       .populate('createdBy', 'name')
       .sort({ createdAt: -1 });
 
@@ -43,6 +43,11 @@ const claimTask = async (req, res) => {
     if (task.status !== 'Open') {
       return res.status(400).json({ message: 'Task is no longer available' });
     }
+
+    if (task.assignedTo && task.assignedTo.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Access denied: This task is assigned to another talent' });
+    }
+
     task.status = 'Claimed';
     task.assignedTo = req.user._id;
     await task.save();
