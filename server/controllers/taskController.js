@@ -1,4 +1,4 @@
-﻿const Task = require('../models/Task');
+const Task = require('../models/Task');
 
 // @desc  Get all tasks
 // @route GET /api/tasks
@@ -18,18 +18,29 @@ const getAllTasks = async (req, res) => {
 
 // @desc  Get single task
 // @route GET /api/tasks/:id
-// @access Admin
+// @access Protect (Admin or Authorized Talent)
 const getTaskById = async (req, res) => {
   try {
-    // — will throw a CastError from Mongoose instead of a clean 400
     const task = await Task.findById(req.params.id)
       .populate('assignedTo', 'name email')
       .populate('createdBy', 'name');
 
     if (!task) return res.status(404).json({ message: 'Task not found' });
 
+    // Users with the Talent role should only be permitted to view tasks that are either globally Open or assigned directly to them.
+    if (req.user.role === 'Talent') {
+      const isAssigned = task.assignedTo && task.assignedTo._id.toString() === req.user._id.toString();
+      const isOpen = task.status === 'Open';
+      if (!isAssigned && !isOpen) {
+        return res.status(403).json({ message: 'Access denied: You are not authorized to view this task' });
+      }
+    }
+
     res.json(task);
   } catch (error) {
+    if (error.name === 'CastError') {
+      return res.status(400).json({ message: 'Invalid task ID format' });
+    }
     res.status(500).json({ message: error.message });
   }
 };
@@ -83,7 +94,6 @@ const deleteTask = async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
     if (!task) return res.status(404).json({ message: 'Task not found' });
-    // — orphaned Submission documents remain in DB after task deletion
     await Task.findByIdAndDelete(req.params.id);
 
     res.json({ message: 'Task deleted' });

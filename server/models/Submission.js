@@ -1,5 +1,4 @@
-﻿const mongoose = require('mongoose');
-//   multiple times for the same task (no duplicate prevention)
+const mongoose = require('mongoose');
 const submissionSchema = new mongoose.Schema(
   {
     taskId: {
@@ -19,7 +18,6 @@ const submissionSchema = new mongoose.Schema(
     reviewStatus: {
       type: String,
       default: 'Pending',
-      // Should be: enum: ['Pending', 'Approved', 'Rejected']
     },
   },
   { timestamps: true }

@@ -5,8 +5,6 @@ import MyTasksList from '../../components/talent/MyTasksList';
 import { fetchAvailableTasks, fetchMyTasks } from '../../api/talent';
 import { useAuth } from '../../context/AuthContext';
 
-/* ── Wave emoji stripped, use clean greeting ── */
-
 const TalentDashboard = () => {
   const { user } = useAuth();
   const [availableTasks, setAvailableTasks] = useState([]);

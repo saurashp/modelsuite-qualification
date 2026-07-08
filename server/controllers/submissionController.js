@@ -1,23 +1,29 @@
-﻿const Submission = require('../models/Submission');
+const Submission = require('../models/Submission');
 const Task = require('../models/Task');
 
 // @desc  Submit a task with a file upload
 // @route POST /api/submissions/:taskId
-// @access Talent (protect middleware only — no role check)
+// @access Talent
 const submitTask = async (req, res) => {
   const { taskId } = req.params;
   const { notes } = req.body;
 
   try {
-    // — any authenticated user can submit for any task
-    // — a talent can "submit" an Open or Approved task
+    const task = await Task.findById(taskId);
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
+
+    // Only the assigned Talent (or Admin) can submit
+    if (req.user.role !== 'Admin' && (!task.assignedTo || task.assignedTo.toString() !== req.user._id.toString())) {
+      return res.status(403).json({ message: 'Access denied: You can only submit tasks assigned to you' });
+    }
 
     // Build the file URL from multer's saved file
-    // with a different PORT or base URL
     const fileUrl = req.file
       ? `http://localhost:5000/uploads/${req.file.filename}`
       : req.body.fileUrl || null;
-    // — no audit trail of re-submissions
+
     let submission = await Submission.findOne({ taskId, talentId: req.user._id });
 
     if (submission) {
@@ -35,7 +41,8 @@ const submitTask = async (req, res) => {
     }
 
     // Update task status to Submitted
-    await Task.findByIdAndUpdate(taskId, { status: 'Submitted' });
+    task.status = 'Submitted';
+    await task.save();
 
     res.status(201).json(submission);
   } catch (error) {
@@ -43,9 +50,9 @@ const submitTask = async (req, res) => {
   }
 };
 
-// @desc  Get submission for a specific task (admin use)
+// @desc  Get submission for a specific task
 // @route GET /api/submissions/:taskId
-// @access Protect only — no admin guard
+// @access Protect (Admin or Authorized Talent)
 const getSubmission = async (req, res) => {
   try {
     const submission = await Submission.findOne({ taskId: req.params.taskId })
@@ -53,6 +60,11 @@ const getSubmission = async (req, res) => {
 
     if (!submission) {
       return res.status(404).json({ message: 'No submission found for this task' });
+    }
+
+    // Only Admin or the owner (talentId) can view this submission
+    if (req.user.role !== 'Admin' && submission.talentId._id.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Access denied: You are not authorized to view this submission' });
     }
 
     res.json(submission);
@@ -83,8 +95,11 @@ const getAllSubmissions = async (req, res) => {
 const reviewSubmission = async (req, res) => {
   const { reviewStatus } = req.body;
 
+  if (!['Approved', 'Rejected'].includes(reviewStatus)) {
+    return res.status(400).json({ message: 'Invalid review status. Must be Approved or Rejected' });
+  }
+
   try {
-    // — any string is accepted and stored
     const submission = await Submission.findByIdAndUpdate(
       req.params.id,
       { reviewStatus },
@@ -96,8 +111,11 @@ const reviewSubmission = async (req, res) => {
     if (!submission) {
       return res.status(404).json({ message: 'Submission not found' });
     }
-    // — task stays 'Submitted' even after the submission is Approved/Rejected
-    // Proper flow: also update Task.status to 'Approved'/'Rejected'
+
+    // Update Task.status to 'Approved'/'Rejected'
+    if (submission.taskId) {
+      await Task.findByIdAndUpdate(submission.taskId._id, { status: reviewStatus });
+    }
 
     res.json(submission);
   } catch (error) {

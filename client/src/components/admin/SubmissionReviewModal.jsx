@@ -1,4 +1,6 @@
-﻿import { reviewSubmission } from '../../api/submissions';
+import { useState } from 'react';
+import { reviewSubmission } from '../../api/submissions';
+import { useToast } from '../../context/ToastContext';
 
 const REVIEW_STATUS_CLASS = {
   Pending:  'status-badge-Submitted',
@@ -7,14 +9,20 @@ const REVIEW_STATUS_CLASS = {
 };
 
 const SubmissionReviewModal = ({ submission, onClose, onReviewed }) => {
+  const [loading, setLoading] = useState(null); // 'Approved', 'Rejected', or null
+  const { showToast } = useToast();
 
   const handleReview = async (status) => {
+    setLoading(status);
     try {
       await reviewSubmission(submission._id, status);
+      showToast(`Submission has been ${status.toLowerCase()} successfully!`, 'success');
       onReviewed();
       onClose();
     } catch (err) {
-      alert(err.response?.data?.message || 'Review action failed');
+      showToast(err.response?.data?.message || 'Review action failed', 'error');
+    } finally {
+      setLoading(null);
     }
   };
 
@@ -75,9 +83,7 @@ const SubmissionReviewModal = ({ submission, onClose, onReviewed }) => {
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.5px] text-text-faint mb-2">Notes</p>
             {submission.notes ? (
-              <p className="text-[14px] text-text-muted leading-relaxed bg-bg-surface rounded-lg px-4 py-3 border border-border">
-                {submission.notes}
-              </p>
+              <div className="text-[14px] text-text-muted leading-relaxed bg-bg-surface rounded-lg px-4 py-3 border border-border select-text" dangerouslySetInnerHTML={{ __html: submission.notes }} />
             ) : (
               <p className="text-[13px] text-text-faint italic">No notes provided.</p>
             )}
@@ -101,16 +107,28 @@ const SubmissionReviewModal = ({ submission, onClose, onReviewed }) => {
 
           {/* Action buttons */}
           <div className="flex gap-3 pt-1 border-t border-border mt-1">
-            <button onClick={onClose}
+            <button onClick={onClose} disabled={loading !== null}
               className="flex-1 py-2.5 bg-bg-input text-text-muted border border-border rounded-lg text-sm font-medium cursor-pointer hover:bg-bg-hover hover:text-text-primary transition-all font-sans">
               Cancel
             </button>
-            <button onClick={() => handleReview('Rejected')}
-              className="flex-1 py-2.5 bg-danger/10 text-danger border border-danger/30 rounded-lg text-sm font-semibold cursor-pointer hover:bg-danger/20 transition-all font-sans">
+            <button onClick={() => handleReview('Rejected')} disabled={loading !== null}
+              className="flex-1 py-2.5 bg-danger/10 text-danger border border-danger/30 rounded-lg text-sm font-semibold cursor-pointer hover:bg-danger/20 transition-all font-sans flex items-center justify-center gap-1.5 disabled:opacity-50">
+              {loading === 'Rejected' && (
+                <svg className="animate-spin h-3.5 w-3.5 text-danger" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              )}
               ✕ Reject
             </button>
-            <button onClick={() => handleReview('Approved')}
-              className="flex-1 py-2.5 bg-success/10 text-success border border-success/30 rounded-lg text-sm font-semibold cursor-pointer hover:bg-success/20 transition-all font-sans">
+            <button onClick={() => handleReview('Approved')} disabled={loading !== null}
+              className="flex-1 py-2.5 bg-success/10 text-success border border-success/30 rounded-lg text-sm font-semibold cursor-pointer hover:bg-success/20 transition-all font-sans flex items-center justify-center gap-1.5 disabled:opacity-50">
+              {loading === 'Approved' && (
+                <svg className="animate-spin h-3.5 w-3.5 text-success" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              )}
               ✓ Approve
             </button>
           </div>

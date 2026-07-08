@@ -1,4 +1,4 @@
-﻿const User = require('../models/User');
+const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const generateToken = (id, role) => {
@@ -54,7 +54,6 @@ const loginUser = async (req, res) => {
         token: generateToken(user._id, user.role),
       });
     } else {
-      // — less secure but also unhelpful UX
       res.status(401).json({ message: 'Invalid email or password' });
     }
   } catch (error) {
@@ -62,4 +61,40 @@ const loginUser = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, loginUser };
+// @desc  Logout user / blacklist token
+// @route POST /api/auth/logout
+// @access Protect
+const TokenBlacklist = require('../models/TokenBlacklist');
+
+const logoutUser = async (req, res) => {
+  try {
+    let token;
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+      token = req.headers.authorization.split(' ')[1];
+    }
+
+    if (!token) {
+      return res.status(400).json({ message: 'No token provided' });
+    }
+
+    let expiresAt;
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      expiresAt = new Date(decoded.exp * 1000);
+    } catch {
+      expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // fallback to 7 days
+    }
+
+    try {
+      await TokenBlacklist.create({ token, expiresAt });
+    } catch {
+      // ignore
+    }
+
+    res.json({ message: 'Logged out successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { registerUser, loginUser, logoutUser };

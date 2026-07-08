@@ -2,6 +2,12 @@ import { useEffect, useState } from 'react';
 import Sidebar from '../../components/admin/Sidebar';
 import SubmissionReviewModal from '../../components/admin/SubmissionReviewModal';
 import { fetchAllSubmissions } from '../../api/submissions';
+import { useToast } from '../../context/ToastContext';
+
+const stripHtml = (html) => {
+  if (!html) return '';
+  return html.replace(/<[^>]*>/g, '');
+};
 
 const REVIEW_STATUS_CLASS = {
   Pending:  'status-badge-Submitted',
@@ -12,13 +18,14 @@ const REVIEW_STATUS_CLASS = {
 const SubmissionsPage = () => {
   const [submissions, setSubmissions] = useState([]);
   const [reviewTarget, setReviewTarget] = useState(null);
+  const { showToast } = useToast();
 
   const loadSubmissions = async () => {
     try {
       const { data } = await fetchAllSubmissions();
       setSubmissions(data);
     } catch {
-      alert('Failed to load submissions');
+      showToast('Failed to load submissions', 'error');
     }
   };
 
@@ -108,11 +115,10 @@ const SubmissionsPage = () => {
                         </div>
                       </td>
 
-                      {/* Notes — truncated, no tooltip */}
-                      
+                      {/* Notes — truncated */}
                       <td className={`${tdCls} max-w-[200px]`}>
                         <span className="block text-text-muted truncate text-[13px]">
-                          {sub.notes || <span className="italic text-text-faint">No notes</span>}
+                          {sub.notes ? stripHtml(sub.notes) : <span className="italic text-text-faint">No notes</span>}
                         </span>
                       </td>
 

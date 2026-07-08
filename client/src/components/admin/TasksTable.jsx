@@ -1,4 +1,10 @@
 import { deleteTask } from '../../api/tasks';
+import { useToast } from '../../context/ToastContext';
+
+const stripHtml = (html) => {
+  if (!html) return '';
+  return html.replace(/<[^>]*>/g, '');
+};
 
 /* ── SVG Action Icons ── */
 const IconEdit = () => (
@@ -42,13 +48,16 @@ const STATUS_CLASS = {
 };
 
 const TasksTable = ({ tasks, onEdit, onRefresh }) => {
+  const { showToast } = useToast();
 
   const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this task?')) return;
     try {
       await deleteTask(id);
+      showToast('Task deleted successfully!', 'success');
       onRefresh();
     } catch {
-      alert('Failed to delete task');
+      showToast('Failed to delete task', 'error');
     }
   };
 
@@ -92,7 +101,7 @@ const TasksTable = ({ tasks, onEdit, onRefresh }) => {
                 </span>
                 {task.description && (
                   <span className="block truncate" style={{ color: '#4B5563', fontSize: '12px', maxWidth: '240px' }}>
-                    {task.description}
+                    {stripHtml(task.description)}
                   </span>
                 )}
               </td>

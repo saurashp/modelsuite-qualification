@@ -1,11 +1,10 @@
-﻿const Task = require('../models/Task');
+const Task = require('../models/Task');
 
 // @desc  Get all available (Open) tasks
 // @route GET /api/talent/tasks/available
 // @access Talent
 const getAvailableTasks = async (req, res) => {
   try {
-    // (loose schema allows this inconsistent state from seed data)
     const tasks = await Task.find({ status: 'Open' })
       .populate('createdBy', 'name')
       .sort({ createdAt: -1 });
@@ -21,7 +20,6 @@ const getAvailableTasks = async (req, res) => {
 // @access Talent
 const getMyTasks = async (req, res) => {
   try {
-    // all come back mixed together with no grouping
     const tasks = await Task.find({ assignedTo: req.user._id })
       .sort({ updatedAt: -1 });
 
@@ -36,8 +34,6 @@ const getMyTasks = async (req, res) => {
 // @access Talent
 const claimTask = async (req, res) => {
   try {
-    // Two talents can both pass the status === 'Open' check before either saves,
-    // then both write Claimed. Proper fix: findOneAndUpdate({ _id, status: 'Open' })
     const task = await Task.findById(req.params.id);
 
     if (!task) {
