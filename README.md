@@ -117,9 +117,9 @@ npm run seed
 
 | Role | Email | Password |
 |---|---|---|
-| Admin | `admin@test.com` | `password123` |
-| Talent | `talent1@test.com` | `password123` |
-| Talent | `talent2@test.com` | `password123` |
+| Admin | `admin@taskpipeline.com` | `admin123` |
+| Talent | `alice@taskpipeline.com` | `talent123` |
+| Talent | `bob@taskpipeline.com` | `talent123` |
 
 ### 5. Install frontend dependencies
 
